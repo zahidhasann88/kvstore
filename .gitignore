@@ -1,0 +1,14 @@
+# Binaries
+kvstore
+kvstore.exe
+
+# JSON data files
+*.json
+docs.txt
+
+# Go build cache
+.gocache/
+
+# IDE files
+.vscode/
+.idea/
