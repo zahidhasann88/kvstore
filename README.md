@@ -19,7 +19,7 @@ A Redis-like key-value store implementation in Go with CLI interface and TCP ser
 
 ```bash
 # Clone and run
-git clone <your-repo-url>
+git clone <https://github.com/zahidhasann88/kvstore.git>
 cd kvstore
 go run .
 ```
