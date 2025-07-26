@@ -19,7 +19,6 @@ A Redis-like key-value store implementation in Go with CLI interface and TCP ser
 ```bash
 go install github.com/zahidhasann88/kvstore@latest
 ```
-This installs the `kvstore` command globally.
 
 ### Method 2: From Source
 ```bash
@@ -27,7 +26,6 @@ git clone https://github.com/zahidhasann88/kvstore.git
 cd kvstore
 go mod tidy
 go build .
-./kvstore  # Run the binary
 ```
 
 ### Method 3: Run Without Installing
@@ -40,16 +38,8 @@ go run .
 ## Quick Start
 
 ### CLI Mode (Default)
+After installation, simply run `kvstore` or `./kvstore` if built from source.
 
-```bash
-# After installation
-kvstore
-
-# Or if built from source
-./kvstore
-```
-
-Example session:
 ```
 > SET name "John Doe"
 OK
@@ -57,8 +47,6 @@ OK
 "John Doe"
 > SET temp "expires soon" EX 10
 OK
-> GET temp
-"expires soon"
 > DEL name
 1
 > SAVE backup.json
@@ -68,36 +56,33 @@ OK
 
 ### TCP Server Mode
 
-Start server:
+**Start server:**
 ```bash
 kvstore server
-# Or: go run . server
 ```
 
-Connect from another terminal:
+**Connect client:**
 ```bash
+# Method 1: Built-in client
 kvstore client
-# Or: go run . client
-# Or use telnet: telnet localhost 8080
+
+# Method 2: Using telnet
+telnet localhost 8080
 ```
 
-**Server Example:**
+**Example session:**
 ```bash
-# Terminal 1
+# Terminal 1 - Server
 $ kvstore server
 Starting KV Store TCP Server on :8080...
-KV Store server listening on :8080
 
-# Terminal 2
+# Terminal 2 - Client
 $ kvstore client
 Connected to server at localhost:8080
-Enter commands (type EXIT to quit):
 > SET user "Alice"
 < OK
 > GET user
 < "Alice"
-> DEL user
-< 1
 > EXIT
 ```
 
@@ -114,8 +99,6 @@ Enter commands (type EXIT to quit):
 
 ## Usage as Go Library
 
-You can also import this package in your Go code:
-
 ```go
 package main
 
@@ -126,7 +109,6 @@ import (
 )
 
 func main() {
-    // Create a new store
     kvStore := store.NewStore()
     defer kvStore.Close()
     
@@ -147,51 +129,58 @@ func main() {
 }
 ```
 
-## Real-World Use Cases
+## Use Cases & Examples
 
-### 1. Development Cache
+### Development Cache
 ```bash
-# Start server for development
-kvstore server &
-
-# Use in your scripts or applications
+kvstore server &  # Background server for development
 ```
 
-### 2. Session Storage
+### Session Storage with TTL
 ```bash
-kvstore
 > SET session:user123 "active" EX 3600  # 1 hour session
 > SET session:user456 "active" EX 1800  # 30 min session
 > SAVE sessions.json  # Backup sessions
 ```
 
-### 3. Configuration Management
+### Configuration Management
 ```bash
-kvstore
 > SET app:debug "true"
 > SET app:max_connections "100"
 > SET app:api_key "secret123"
 > SAVE config.json
 ```
 
-### 4. Testing & Prototyping
+### Testing with JSON Data
 ```bash
-# Quick data storage for testing
-kvstore
 > SET test_user1 '{"name":"Alice","email":"alice@test.com"}'
 > SET test_user2 '{"name":"Bob","email":"bob@test.com"}'
 > GET test_user1
 ```
 
+### TTL Demonstration
+```bash
+> SET session "abc123" EX 30
+OK
+> GET session
+"abc123"
+# Wait 30 seconds...
+> GET session
+(nil)
+```
+
+### Persistence Workflow
+```bash
+> SET user1 "Alice"
+> SET user2 "Bob"
+> SAVE users.json
+> DEL user1
+> LOAD users.json    # Restores user1
+> GET user1
+"Alice"
+```
+
 ## Architecture
-
-### Key Components
-
-- **Store**: Thread-safe in-memory storage with automatic expiration
-- **Parser**: Robust command parsing with quote handling
-- **Server**: Multi-client TCP server with connection management
-- **Persistence**: JSON-based data serialization
-- **Expiration**: Timer-based automatic key cleanup
 
 ### Project Structure
 ```
@@ -210,91 +199,55 @@ kvstore/
 └── Makefile            # Build automation
 ```
 
+### Key Components
+- **Store**: Thread-safe in-memory storage with automatic expiration
+- **Parser**: Robust command parsing with quote handling
+- **Server**: Multi-client TCP server with connection management
+- **Persistence**: JSON-based data serialization
+- **Expiration**: Timer-based automatic key cleanup
+
+### Technical Details
+
+**Data Structure:**
+```go
+type Item struct {
+    Value     string    `json:"value"`
+    ExpiresAt time.Time `json:"expires_at"`
+    HasTTL    bool      `json:"has_ttl"`
+}
+```
+
+**Performance Characteristics:**
+- Memory: O(n) where n is number of stored keys
+- Operations: O(1) average time complexity for SET/GET/DEL
+- Concurrency: Read-write mutex for thread safety
+- Persistence: On-demand file operations
+
+**Network Protocol:**
+- Plain text commands over TCP
+- Line-based protocol (commands end with \n)
+- Multi-client support with goroutines
+
 ## Building & Development
 
 ```bash
 make build    # Build binary
 make run      # Run CLI mode
 make server   # Run TCP server
-make test     # Run tests (when added)
+make test     # Run tests
 make clean    # Clean build artifacts
 make install  # Install to GOPATH/bin
 ```
 
 ## Configuration
 
-Default settings:
+**Default Settings:**
 - TCP Server Port: `:8080`
 - Max Key Length: 250 characters
 - File Format: JSON
 - Default TTL: No expiration
 
-## Performance Characteristics
-
-- **Memory**: O(n) where n is number of stored keys
-- **Operations**: O(1) average time complexity for SET/GET/DEL
-- **Concurrency**: Read-write mutex for thread safety
-- **Persistence**: On-demand file operations
-
-## Examples
-
-### Basic Operations
-```bash
-> SET counter 1
-OK
-> SET message "Hello, World!"
-OK
-> GET counter
-"1"
-> GET message
-"Hello, World!"
-```
-
-### TTL (Time To Live)
-```bash
-> SET session "abc123" EX 30
-OK
-> GET session
-"abc123"
-# Wait 30 seconds...
-> GET session
-(nil)
-```
-
-### Persistence
-```bash
-> SET user1 "Alice"
-OK
-> SET user2 "Bob"
-OK
-> SAVE users.json
-OK
-> DEL user1
-1
-> LOAD users.json
-OK
-> GET user1
-"Alice"
-```
-
-### Network Mode
-```bash
-# Terminal 1: Start server
-$ kvstore server
-Starting KV Store TCP Server on :8080...
-KV Store server listening on :8080
-
-# Terminal 2: Connect client
-$ kvstore client
-Connected to server at localhost:8080
-Enter commands (type EXIT to quit):
-> SET distributed "works!"
-< OK
-> GET distributed
-< "works!"
-```
-
-## Docker Usage (Optional)
+## Docker Usage
 
 ```dockerfile
 FROM golang:1.22-alpine
@@ -308,35 +261,14 @@ docker build -t kvstore .
 docker run -p 8080:8080 kvstore
 ```
 
-## Technical Details
-
-### Data Structure
-```go
-type Item struct {
-    Value     string    `json:"value"`
-    ExpiresAt time.Time `json:"expires_at"`
-    HasTTL    bool      `json:"has_ttl"`
-}
-```
-
-### Expiration Management
-- Timer-based automatic cleanup
-- Lazy expiration on access
-- Thread-safe timer management
-
-### Network Protocol
-- Plain text commands over TCP
-- Line-based protocol (commands end with \n)
-- Multi-client support with goroutines
-
 ## Troubleshooting
 
 ### Installation Issues
 ```bash
-# If go install fails, check Go version
-go version  # Should be 1.21+
+# Check Go version (should be 1.21+)
+go version
 
-# Update Go modules
+# Clean and reinstall
 go clean -modcache
 go install github.com/zahidhasann88/kvstore@latest
 ```
@@ -355,7 +287,7 @@ pkill kvstore
 # Make binary executable
 chmod +x kvstore
 
-# Check GOPATH/bin is in PATH
+# Ensure GOPATH/bin is in PATH
 echo $PATH | grep $(go env GOPATH)/bin
 ```
 
