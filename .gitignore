@@ -1,14 +1,44 @@
-# Binaries
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
 kvstore
 kvstore.exe
 
-# JSON data files
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+
+# Go workspace file
+go.work
+
+# Data files
 *.json
 docs.txt
-
-# Go build cache
-.gocache/
+CONTRIBUTING.md
 
 # IDE files
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Go build cache
+.gocache/
+
+# Logs
+*.log
