@@ -6,9 +6,9 @@ import (
 	"os"
 	"strings"
 
-	"kvstore/parser"
-	"kvstore/server"
-	"kvstore/store"
+	"github.com/zahidhasann88/kvstore/parser"
+	"github.com/zahidhasann88/kvstore/server"
+	"github.com/zahidhasann88/kvstore/store"
 )
 
 func main() {

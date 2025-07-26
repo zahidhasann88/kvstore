@@ -3,8 +3,8 @@ package server
 import (
 	"bufio"
 	"fmt"
-	"kvstore/parser"
-	"kvstore/store"
+	"github.com/zahidhasann88/kvstore/parser"
+	"github.com/zahidhasann88/kvstore/store"
 	"net"
 	"os"
 	"os/signal"
